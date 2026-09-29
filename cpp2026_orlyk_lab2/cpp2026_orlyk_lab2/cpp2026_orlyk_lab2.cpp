@@ -1,16 +1,17 @@
-// cpp2026_orlyk_lab1.cpp : Defines the entry point for the application.
+// cpp2026_orlyk_lab2.cpp : Defines the entry point for the application.
 //
 
 #include "framework.h"
-#include "cpp2026_orlyk_lab1.h"
-#include <iostream>
+#include "cpp2026_orlyk_lab2.h"
 
 #define MAX_LOADSTRING 100
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
-WCHAR szDenisOrlyk[MAX_LOADSTRING];            // the main window class name
+WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+int width = 800;
+int height = 400;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -30,7 +31,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_CPP2026ORLYKLAB1, szDenisOrlyk, MAX_LOADSTRING);
+    LoadStringW(hInstance, IDC_CPP2026ORLYKLAB2, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
     // Perform application initialization:
@@ -39,7 +40,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CPP2026ORLYKLAB1));
+    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CPP2026ORLYKLAB2));
 
     MSG msg;
 
@@ -69,19 +70,17 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style          = CS_BYTEALIGNCLIENT | CS_HREDRAW | CS_VREDRAW; // Стиль класу: вирівнювання клієнтської області по горизонталі,
-                                                                        // оновлення вікна при зміні горизонтального розміру,
-                                                                        // оновлення вікна при зміні вертикального розміру.
+    wcex.style          = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc    = WndProc;
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
     wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(nullptr, IDI_QUESTION); // Тип іконки: IDI_QUESTION
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW); // Тип курсору: IDC_ARROW
-    wcex.hbrBackground  = (HBRUSH)(GetStockObject(GRAY_BRUSH)); // Колір фону вікна: сірий
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_CPP2026ORLYKLAB1);
-    wcex.lpszClassName  = szDenisOrlyk;
-    wcex.hIconSm        = LoadIcon(nullptr, IDI_QUESTION);
+    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CPP2026ORLYKLAB2));
+    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
+    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_CPP2026ORLYKLAB2);
+    wcex.lpszClassName  = szWindowClass;
+    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
     return RegisterClassExW(&wcex);
 }
@@ -101,16 +100,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // Store instance handle in our global variable
 
    int cx = GetSystemMetrics(SM_CXSCREEN);
-   
-   HWND hWnd = CreateWindowW(szDenisOrlyk, szTitle, WS_OVERLAPPEDWINDOW | WS_HSCROLL | WS_VSCROLL,
-      cx - 450, 100, 450, 440, nullptr, nullptr, hInstance, nullptr);
+   int cy = GetSystemMetrics(SM_CYSCREEN);
+
+   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+      cx / 2 - width / 2, cy / 2 - height / 2, width, height, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
    {
       return FALSE;
    }
 
-   ShowWindow(hWnd, SW_SHOWMINIMIZED); // Мінімізоване з запуску програми
+   ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
    return TRUE;
@@ -128,9 +128,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    HPEN Pen, holdPen;
+    HBRUSH hatchBrush, holdHatchBrush;
+    HDC hdc;
+
     switch (message)
     {
-    case WM_COMMAND:
+    case WM_COMMAND:    // Command from app's manu
         {
             int wmId = LOWORD(wParam);
             // Parse the menu selections:
@@ -150,27 +154,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
+            hdc = BeginPaint(hWnd, &ps);
             // TODO: Add any drawing code here...
+            Pen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+            hatchBrush = CreateHatchBrush(HS_BDIAGONAL, RGB(0, 0, 0));
             
-            // Інформація про метрику: площа прямокутника подвійного клацання
-            int cxDblClk = GetSystemMetrics(SM_CXDOUBLECLK);
-            int cyDblClk = GetSystemMetrics(SM_CYDOUBLECLK);
-            int areaDblClk = cxDblClk * cyDblClk;
+            holdPen = (HPEN)SelectObject(hdc, Pen);
+            holdHatchBrush = (HBRUSH)SelectObject(hdc, hatchBrush);
 
-            // Інформація про пристрій: відносна ширина точки
-            int aspectX = GetDeviceCaps(hdc, ASPECTX);
+            SetBkMode(hdc, OPAQUE);
+            SetBkColor(hdc, RGB(255, 0, 0));
 
-            // Виведення результатів
-            WCHAR buffer[256];
-            int len;
+            BeginPath(hdc);
+            MoveToEx(hdc, 200, 100, (LPPOINT)NULL);
+            LineTo(hdc, 600, 100);
+            LineTo(hdc, 600, 300);
+            LineTo(hdc, 200, 300);
+            LineTo(hdc, 200, 100);
 
-            len = swprintf(buffer, 256, L"Площа прямокутника подв. кліку: %d кв. точок", areaDblClk);
-            TextOutW(hdc, 15, 15, buffer, len);
 
-            len = swprintf(buffer, 256, L"Відносна ширина точки: %d", aspectX);
-            TextOutW(hdc, 15, 40, buffer, len);
-
+            EndPath(hdc);
+            StrokeAndFillPath(hdc);
+            SelectObject(hdc, holdPen);
+            SelectObject(hdc, holdHatchBrush);
+            DeleteObject(Pen);
+            DeleteObject(hatchBrush);
+            
             EndPaint(hWnd, &ps);
         }
         break;
