@@ -156,7 +156,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             int cyDblClk = GetSystemMetrics(SM_CYDOUBLECLK);
             int areaDblClk = cxDblClk * cyDblClk;
 
-            // Інформація про пристрій: відносна ширина точки
+            // Інформація про пристрій: ширина точки
             int aspectX = GetDeviceCaps(hdc, ASPECTX);
 
             // Виведення результатів
@@ -166,7 +166,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             len = swprintf(buffer, 256, L"Площа прямокутника подв. кліку: %d кв. точок", areaDblClk);
             TextOutW(hdc, 15, 15, buffer, len);
 
-            len = swprintf(buffer, 256, L"Відносна ширина точки: %d", aspectX);
+            len = swprintf(buffer, 256, L"Ширина точки: %d", aspectX);
             TextOutW(hdc, 15, 40, buffer, len);
 
             EndPaint(hWnd, &ps);
